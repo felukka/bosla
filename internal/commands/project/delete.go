@@ -6,8 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mahmoudk1000/relen/internal/database"
-	"github.com/mahmoudk1000/relen/internal/db"
+	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 type deleteOptions struct {
@@ -25,7 +24,7 @@ func NewDeleteCommand() *cobra.Command {
 		Short:   "Delete a project",
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			queries = db.Get()
+			queries = database.Get()
 			opts.name = args[0]
 
 			if !opts.confirmed {

@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"database/sql"
@@ -6,12 +6,10 @@ import (
 	"sync"
 
 	_ "github.com/lib/pq"
-
-	"github.com/mahmoudk1000/relen/internal/database"
 )
 
 var (
-	instance *database.Queries
+	instance *Queries
 	conn     *sql.DB
 	once     sync.Once
 	initErr  error
@@ -30,13 +28,13 @@ func Init(connectionString string) error {
 			return
 		}
 
-		instance = database.New(conn)
+		instance = New(conn)
 	})
 
 	return initErr
 }
 
-func Get() *database.Queries {
+func Get() *Queries {
 	if instance == nil {
 		panic("database not initialized: call db.Init() first")
 	}

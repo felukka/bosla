@@ -9,9 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/sqlc-dev/pqtype"
 
-	"github.com/mahmoudk1000/relen/internal/database"
-	"github.com/mahmoudk1000/relen/internal/db"
-	"github.com/mahmoudk1000/relen/internal/utils"
+	"github.com/mahmoudk1000/bosla/internal/database"
+	"github.com/mahmoudk1000/bosla/internal/utils"
 )
 
 type createOptions struct {
@@ -32,7 +31,7 @@ func NewCreateCommand() *cobra.Command {
 		Short:   "add a new application to the project",
 		Args:    cobra.ExactArgs(1),
 		PreRun: func(cmd *cobra.Command, args []string) {
-			queries = db.Get()
+			queries = database.Get()
 			opts.name = args[0]
 		},
 	}
@@ -49,7 +48,7 @@ func NewCreateCommand() *cobra.Command {
 
 		metadataMap, err := utils.ParseMetadata(opts.metadata)
 		if err != nil {
-			return fmt.Errorf(failedToParseMetadataErr, err)
+			return fmt.Errorf(invalidFormatErr, err)
 		}
 
 		metadata, err := utils.MetadataToJSON(metadataMap)

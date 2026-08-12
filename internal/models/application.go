@@ -3,7 +3,7 @@ package models
 import (
 	"encoding/json"
 
-	"github.com/mahmoudk1000/relen/internal/database"
+	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 type Application struct {

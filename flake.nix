@@ -26,7 +26,7 @@
         {
           default = pkgs.buildGoModule {
             inherit version;
-            pname = "relen";
+            pname = "bosla";
             src = ./.;
             subPackages = [
               "cmd/..."
@@ -45,6 +45,9 @@
           default = pkgs.mkShell {
             packages = with pkgs; [
               cobra-cli
+              goimports-reviser
+              golangci-lint
+              golines
               sqlc
             ];
             buildInputs = with pkgs; [

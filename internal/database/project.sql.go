@@ -8,6 +8,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/sqlc-dev/pqtype"
@@ -111,12 +112,12 @@ func (q *Queries) GetProjectIdByName(ctx context.Context, name string) (int32, e
 }
 
 const getProjectMetadata = `-- name: GetProjectMetadata :one
-SELECT metadata::text AS value FROM projects WHERE name = $1
+SELECT metadata::jsonb AS value FROM projects WHERE name = $1
 `
 
-func (q *Queries) GetProjectMetadata(ctx context.Context, name string) (string, error) {
+func (q *Queries) GetProjectMetadata(ctx context.Context, name string) (json.RawMessage, error) {
 	row := q.db.QueryRowContext(ctx, getProjectMetadata, name)
-	var value string
+	var value json.RawMessage
 	err := row.Scan(&value)
 	return value, err
 }

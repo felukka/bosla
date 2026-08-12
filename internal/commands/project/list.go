@@ -6,10 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mahmoudk1000/relen/internal/database"
-	"github.com/mahmoudk1000/relen/internal/db"
-	"github.com/mahmoudk1000/relen/internal/models"
-	"github.com/mahmoudk1000/relen/internal/utils"
+	"github.com/mahmoudk1000/bosla/internal/database"
+	"github.com/mahmoudk1000/bosla/internal/models"
+	"github.com/mahmoudk1000/bosla/internal/utils"
 )
 
 type listOptions struct {
@@ -27,7 +26,7 @@ func NewListCommand() *cobra.Command {
 		Args:    cobra.RangeArgs(0, 1),
 		Short:   "List all projects",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			queries = db.Get()
+			queries = database.Get()
 			if len(args) > 0 {
 				opts.name = args[0]
 			}

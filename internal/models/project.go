@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/mahmoudk1000/relen/internal/database"
+	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 type Project struct {

@@ -9,7 +9,7 @@ SET metadata = $2, updated_at = $3
 WHERE name = $1;
 
 -- name: GetProjectMetadata :one
-SELECT metadata::text AS value FROM projects WHERE name = $1;
+SELECT metadata::jsonb AS value FROM projects WHERE name = $1;
 
 -- name: GetProjectByName :one
 SELECT * FROM projects

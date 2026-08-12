@@ -7,9 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mahmoudk1000/relen/internal/database"
-	"github.com/mahmoudk1000/relen/internal/db"
-	"github.com/mahmoudk1000/relen/internal/utils"
+	"github.com/mahmoudk1000/bosla/internal/database"
+	"github.com/mahmoudk1000/bosla/internal/utils"
 )
 
 type statusOptions struct {
@@ -27,7 +26,7 @@ func NewStatusCommand() *cobra.Command {
 		Args:    cobra.RangeArgs(1, 2),
 		Short:   "Update project status",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			queries = db.Get()
+			queries = database.Get()
 			opts.name = args[0]
 
 			if len(args) == 2 {
@@ -65,7 +64,7 @@ func NewStatusCommand() *cobra.Command {
 			case jsonFlag:
 				fmtS, err = utils.FormatJSON(s)
 			case yamlFlag:
-				fmtS, err = utils.FormatYAML(s)
+				fmtS, err = utils.FormatTable(s)
 			default:
 				fmtS, err = utils.Format(s)
 			}

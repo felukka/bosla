@@ -3,8 +3,7 @@ package config
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/mahmoudk1000/relen/internal/database"
-	"github.com/mahmoudk1000/relen/internal/db"
+	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 func NewInitCommand() *cobra.Command {
@@ -14,7 +13,7 @@ func NewInitCommand() *cobra.Command {
 		Use:   "init",
 		Short: "Initialize database for the CLI tool",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			queries = db.Get()
+			queries = database.Get()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()

@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS projects (
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS applications (
+CREATE TABLE IF NOT EXISTS services (
     id              SERIAL PRIMARY KEY,
     project_id      INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     name            TEXT NOT NULL,
@@ -35,9 +35,9 @@ CREATE TABLE IF NOT EXISTS project_versions (
     UNIQUE (project_id, version)
 );
 
-CREATE TABLE IF NOT EXISTS application_versions (
+CREATE TABLE IF NOT EXISTS service_versions (
     id              SERIAL PRIMARY KEY,
-    application_id  INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+    service_id      INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
     version         TEXT NOT NULL,
     status          TEXT,
     git_hash        TEXT,
@@ -45,31 +45,28 @@ CREATE TABLE IF NOT EXISTS application_versions (
     metadata        JSONB,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    UNIQUE (application_id, version)
+    UNIQUE (service_id, version)
 );
 
-CREATE TABLE IF NOT EXISTS project_version_apps (
-    project_version_id     INTEGER NOT NULL REFERENCES project_versions(id) ON DELETE CASCADE,
-    application_id         INTEGER NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
-    application_version_id INTEGER NOT NULL REFERENCES application_versions(id),
+CREATE TABLE IF NOT EXISTS project_version_services (
+    project_version_id INTEGER NOT NULL REFERENCES project_versions(id) ON DELETE CASCADE,
+    service_id         INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    service_version_id INTEGER NOT NULL REFERENCES service_versions(id),
 
-    PRIMARY KEY (project_version_id, application_id)
+    PRIMARY KEY (project_version_id, service_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_projects_name ON projects(name);
-CREATE INDEX IF NOT EXISTS idx_projects_id ON projects(id);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
+CREATE INDEX IF NOT EXISTS idx_projects_metadata ON projects USING GIN (metadata);
 
-CREATE INDEX IF NOT EXISTS idx_applications_name ON applications(name);
-CREATE INDEX IF NOT EXISTS idx_applications_id ON applications(id);
-CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+CREATE INDEX IF NOT EXISTS idx_services_name ON services(name);
+CREATE INDEX IF NOT EXISTS idx_services_status ON services(status);
+CREATE INDEX IF NOT EXISTS idx_services_metadata ON services USING GIN (metadata);
 
 CREATE INDEX IF NOT EXISTS idx_project_versions_version ON project_versions(version);
-CREATE INDEX IF NOT EXISTS idx_application_versions_version ON application_versions(version);
-CREATE INDEX IF NOT EXISTS idx_application_versions_status ON application_versions(status);
+CREATE INDEX IF NOT EXISTS idx_service_versions_version ON service_versions(version);
+CREATE INDEX IF NOT EXISTS idx_service_versions_status ON service_versions(status);
+CREATE INDEX IF NOT EXISTS idx_service_versions_metadata ON service_versions USING GIN (metadata);
 
-CREATE INDEX IF NOT EXISTS idx_projects_metadata ON projects USING GIN (metadata);
-CREATE INDEX IF NOT EXISTS idx_applications_metadata ON applications USING GIN (metadata);
-CREATE INDEX IF NOT EXISTS idx_application_versions_metadata ON application_versions USING GIN (metadata);
-
-END;
+COMMIT;
