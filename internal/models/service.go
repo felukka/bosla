@@ -1,31 +1,35 @@
 package models
 
 import (
+	"time"
+
 	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 type Service struct {
 	Name        string `json:"name"`
 	Status      string `json:"status,omitempty"`
-	Repo_Url    string `json:"repo,omitempty"`
+	RepoURL     string `json:"repo_url,omitempty"`
 	Description string `json:"description,omitempty"`
-	Created_At  string `json:"created_at"`
-	Updated_At  string `json:"updated_at,omitempty"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at,omitempty"`
 }
 
 func ToService(s database.Service) Service {
 	return Service{
 		Name:        s.Name,
-		Repo_Url:    s.RepoUrl.String,
-		Description: s.Description.String,
-		Created_At:  s.CreatedAt.Format("2006-01-02T15:04:05 -07:00:00"),
+		Status:      s.Status,
+		RepoURL:     s.RepoUrl,
+		Description: s.Description,
+		CreatedAt:   s.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   s.UpdatedAt.Format(time.RFC3339),
 	}
 }
 
-func ToServices(apps []database.Service) []Service {
-	results := make([]Service, 0, len(apps))
-	for _, a := range apps {
-		results = append(results, ToService(a))
+func ToServices(services []database.Service) []Service {
+	results := make([]Service, 0, len(services))
+	for _, service := range services {
+		results = append(results, ToService(service))
 	}
 
 	return results

@@ -30,6 +30,10 @@ func FormatJSON(v any) (string, error) {
 
 func FormatTable(v any) (string, error) {
 	val := reflect.ValueOf(v)
+	if !val.IsValid() {
+		return "", fmt.Errorf("provided value is nil")
+	}
+
 	var sliceVal reflect.Value
 	var elemType reflect.Type
 
@@ -39,17 +43,17 @@ func FormatTable(v any) (string, error) {
 		sliceVal.Index(0).Set(val)
 		elemType = val.Type()
 	case reflect.Ptr:
-		if val.Elem().Kind() == reflect.Struct {
-			sliceVal = reflect.MakeSlice(reflect.SliceOf(val.Type()), 1, 1)
-			sliceVal.Index(0).Set(val)
-			elemType = val.Elem().Type()
-		} else {
+		if val.IsNil() || val.Elem().Kind() != reflect.Struct {
 			return "", fmt.Errorf("provided argument is not a struct")
 		}
+		sliceVal = reflect.MakeSlice(reflect.SliceOf(val.Type()), 1, 1)
+		sliceVal.Index(0).Set(val)
+		elemType = val.Elem().Type()
 	case reflect.Slice:
 		if val.Len() == 0 {
-			return "No resources found.\n", nil
+			return "No resources found.", nil
 		}
+
 		elemType = val.Index(0).Type()
 		if elemType.Kind() == reflect.Ptr {
 			elemType = elemType.Elem()
@@ -63,9 +67,14 @@ func FormatTable(v any) (string, error) {
 	}
 
 	t := table.NewWriter()
+	style := table.StyleDefault
+	style.Options.DrawBorder = false
+	style.Options.SeparateColumns = false
+	style.Options.SeparateRows = false
+	style.Options.SeparateHeader = false
+	t.SetStyle(style)
 
 	numFields := elemType.NumField()
-
 	headers := make(table.Row, numFields)
 	for i := range numFields {
 		headers[i] = strings.ToUpper(elemType.Field(i).Name)
@@ -79,8 +88,9 @@ func FormatTable(v any) (string, error) {
 		for c := range numFields {
 			row[c] = item.Field(c).Interface()
 		}
+
 		t.AppendRow(row)
 	}
 
-	return t.Render() + "\n", nil
+	return strings.TrimRight(t.Render(), "\n"), nil
 }

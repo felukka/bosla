@@ -3,109 +3,53 @@ package project
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/mahmoudk1000/bosla/internal/database"
+	"github.com/mahmoudk1000/bosla/internal/models"
 	"github.com/mahmoudk1000/bosla/internal/utils"
 )
 
-type statusOptions struct {
-	name   string
-	status string
+type describeOptions struct {
+	name string
 }
 
 func NewDescribeCommand(q *database.Queries) *cobra.Command {
-	opts := &statusOptions{}
-	var queries *database.Queries
+	opts := &describeOptions{}
 
-	status := &cobra.Command{
-		Use:     "status",
-		Aliases: []string{"st"},
-		Args:    cobra.RangeArgs(1, 2),
-		Short:   "Update project status",
+	describe := &cobra.Command{
+		Use:     "describe <project>",
+		Aliases: []string{"show"},
+		Args:    cobra.ExactArgs(1),
+		Short:   "Describe a project",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			queries = database.Get()
-			opts.name = args[0]
-
-			if len(args) == 2 {
-				opts.status = args[1]
-			}
 			opts.name = args[0]
 		},
-	}
-
-	status.RunE = func(cmd *cobra.Command, args []string) error {
-		outputFormat, err := cmd.Flags().GetString("output")
-		ctx := cmd.Context()
-
-		if len(args) == 1 {
-			s, err := getProjectStatus(ctx, opts, queries)
+		RunE: utils.Wrap(func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
+			project, err := describeProject(ctx, opts.name, q)
 			if err != nil {
 				return err
 			}
 
-			var fmtS string
-			switch {
-			case jsonFlag:
-				fmtS, err = utils.FormatJSON(s)
-			case yamlFlag:
-				fmtS, err = utils.FormatTable(s)
-			default:
-				fmtS, err = utils.Format(s)
-			}
+			formatted, err := utils.Format(project, outputFormat)
 			if err != nil {
 				return err
 			}
 
-			fmt.Println(fmtS)
-
+			fmt.Fprintln(cmd.OutOrStdout(), formatted)
 			return nil
-		}
-
-		if err := updateProjectStatus(ctx, opts, queries); err != nil {
-			return err
-		}
-
-		return nil
+		}),
 	}
 
-	return status
+	return describe
 }
 
-func updateProjectStatus(ctx context.Context, opts *statusOptions, q *database.Queries) error {
-	if _, err := q.CheckProjectExistsByName(ctx, opts.name); err != nil {
-		return fmt.Errorf(ErrProjectNotFound, opts.name)
-	}
-
-	if err := q.UpdateProjectStatusByName(ctx, database.UpdateProjectStatusByNameParams{
-		Name:      opts.name,
-		Status:    opts.status,
-		UpdatedAt: time.Now().UTC(),
-	}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func getProjectStatus(ctx context.Context, opts *statusOptions, q *database.Queries) (any, error) {
-	pId, err := q.GetProjectIdByName(ctx, opts.name)
+func describeProject(ctx context.Context, projectName string, q *database.Queries) (models.Project, error) {
+	projectRecord, err := q.GetProjectByName(ctx, projectName)
 	if err != nil {
-		return "", fmt.Errorf(ErrProjectNotFound, opts.name)
+		return models.Project{}, fmt.Errorf(ErrProjectNotFound, projectName)
 	}
 
-	opts.status, err = q.GetProjectStatusById(ctx, pId)
-	if err != nil {
-		return "", fmt.Errorf(ErrProjectNotFound, err)
-	}
-
-	return struct {
-		Project string `json:"project"`
-		Status  string `json:"status"`
-	}{
-		Project: opts.name,
-		Status:  opts.status,
-	}, nil
+	return models.ToProject(projectRecord), nil
 }

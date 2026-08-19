@@ -2,101 +2,75 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/sqlc-dev/pqtype"
 
-	"github.com/mahmoudk1000/bosla/internal/commands/project"
 	"github.com/mahmoudk1000/bosla/internal/database"
 	"github.com/mahmoudk1000/bosla/internal/utils"
 )
 
 type addOptions struct {
-	projectName  string
-	app          string
-	link         string
-	description  string
-	metadata     []string
-	metadataJSON pqtype.NullRawMessage
+	projectName string
+	name        string
+	status      string
+	link        string
+	description string
 }
 
 func NewAddCommand(q *database.Queries) *cobra.Command {
 	opts := &addOptions{}
 
 	add := &cobra.Command{
-		Use:     "add <project_name> <application_name>",
+		Use:     "add <project_name> <service_name>",
 		Aliases: []string{"a", "new"},
-		Short:   "add a new application to the project",
+		Short:   "Add a new service to a project",
 		Args:    cobra.RangeArgs(1, 2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cmd.SilenceUsage = true
-			ctx := cmd.Context()
+		RunE: utils.Wrap(func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
 			var err error
-
-			opts.projectName, opts.app, err = utils.ParseProjectSlashApplication(args)
+			opts.projectName, opts.name, err = utils.ParseProjectSlashApplication(args)
 			if err != nil {
 				return err
 			}
 
-			metadataMap, err := utils.ParseMetadata(opts.metadata)
-			if err != nil {
-				return fmt.Errorf(ErrServiceParseMetadata, err)
-			}
-
-			opts.metadataJSON, err = utils.MetadataToJSON(metadataMap)
-			if err != nil {
-				return err
-			}
-
-			return addApplication(ctx, opts, q)
-		},
+			return addService(ctx, opts, q)
+		}),
 	}
 
-	add.Flags().StringP("output", "o", "table", "Output format (table|json)")
-	add.Flags().StringVarP(&opts.link, "link", "l", "", "application's link")
-	add.Flags().StringVarP(&opts.description, "description", "d", "", "application's description")
-	add.Flags().
-		StringArrayVarP(&opts.metadata, "metadata", "m", []string{}, "Metadata key=value pairs")
+	add.Flags().StringVarP(&opts.status, "status", "s", "active", "Service status")
+	add.Flags().StringVarP(&opts.link, "link", "l", "", "Service repository URL")
+	add.Flags().StringVarP(&opts.description, "description", "d", "", "Service description")
 
 	return add
 }
 
-func addApplication(
-	ctx context.Context,
-	opts *addOptions,
-	q *database.Queries,
-) error {
-	pID, err := q.GetProjectIdByName(ctx, opts.projectName)
+func addService(ctx context.Context, opts *addOptions, q *database.Queries) error {
+	projectID, err := q.GetProjectIdByName(ctx, opts.projectName)
 	if err != nil {
-		return fmt.Errorf(project.ErrProjectNotFound, opts.projectName, err)
+		return fmt.Errorf("project %q not found", opts.projectName)
 	}
 
-	exists, err := q.CheckApplicationExistsByName(ctx, database.CheckApplicationExistsByNameParams{
-		Name:      opts.app,
-		ProjectID: pID,
+	exists, err := q.CheckServiceExistsByName(ctx, database.CheckServiceExistsByNameParams{
+		Name:      opts.name,
+		ProjectID: projectID,
 	})
 	if err != nil {
-		return fmt.Errorf(ErrServiceNotFound, err)
+		return err
 	}
 	if exists {
-		return fmt.Errorf(ErrServiceNotFound, opts.app)
+		return fmt.Errorf(ErrServiceExists, opts.name)
 	}
 
-	if _, err := q.CreateApplication(ctx, database.CreateApplicationParams{
-		Name:      opts.app,
-		ProjectID: pID,
-		RepoUrl: sql.NullString{
-			String: opts.link,
-			Valid:  opts.link != "",
-		},
-		Description: sql.NullString{
-			String: opts.description,
-			Valid:  opts.description != "",
-		},
-		CreatedAt: time.Now().UTC(),
+	now := time.Now().UTC()
+	if _, err := q.CreateService(ctx, database.CreateServiceParams{
+		ProjectID:   projectID,
+		Name:        opts.name,
+		Status:      opts.status,
+		Description: opts.description,
+		RepoUrl:     opts.link,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}); err != nil {
 		return fmt.Errorf(ErrServiceCreate, err)
 	}
