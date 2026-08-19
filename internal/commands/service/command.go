@@ -35,6 +35,7 @@ func NewServiceCommand(q *database.Queries) *cobra.Command {
 		NewAddCommand(q),
 		NewDeleteCommand(q),
 		NewListCommand(q),
+		NewSearchCommand(q),
 	)
 
 	return service

@@ -3,7 +3,7 @@ package project
 import (
 	"context"
 	"fmt"
-	"strings"
+	"regexp"
 
 	"github.com/spf13/cobra"
 
@@ -13,21 +13,21 @@ import (
 )
 
 type searchOptions struct {
-	query string
+	pattern string
 }
 
 func NewSearchCommand(q *database.Queries) *cobra.Command {
 	opts := &searchOptions{}
 
 	search := &cobra.Command{
-		Use:   "search <query>",
-		Short: "Search projects",
+		Use:   "search <regex>",
+		Short: "Search projects with regex",
 		Args:  cobra.ExactArgs(1),
 		PreRun: func(cmd *cobra.Command, args []string) {
-			opts.query = strings.ToLower(args[0])
+			opts.pattern = args[0]
 		},
 		RunE: utils.Wrap(func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-			projects, err := searchProjects(ctx, opts.query, q)
+			projects, err := searchProjects(ctx, opts.pattern, q)
 			if err != nil {
 				return err
 			}
@@ -45,7 +45,12 @@ func NewSearchCommand(q *database.Queries) *cobra.Command {
 	return search
 }
 
-func searchProjects(ctx context.Context, query string, q *database.Queries) ([]models.Project, error) {
+func searchProjects(ctx context.Context, pattern string, q *database.Queries) ([]models.Project, error) {
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, fmt.Errorf("invalid regex pattern %q: %w", pattern, err)
+	}
+
 	allProjects, err := q.GetProjects(ctx)
 	if err != nil {
 		return nil, err
@@ -55,10 +60,10 @@ func searchProjects(ctx context.Context, query string, q *database.Queries) ([]m
 	results := make([]models.Project, 0)
 
 	for _, p := range projects {
-		if strings.Contains(strings.ToLower(p.Name), query) ||
-			strings.Contains(strings.ToLower(p.Status), query) ||
-			strings.Contains(strings.ToLower(p.Link), query) ||
-			strings.Contains(strings.ToLower(p.Description), query) {
+		if re.MatchString(p.Name) ||
+			re.MatchString(p.Status) ||
+			re.MatchString(p.Link) ||
+			re.MatchString(p.Description) {
 			results = append(results, p)
 		}
 	}

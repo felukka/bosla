@@ -13,6 +13,7 @@ import (
 
 	"github.com/mahmoudk1000/bosla/internal/commands/configure"
 	"github.com/mahmoudk1000/bosla/internal/commands/project"
+	"github.com/mahmoudk1000/bosla/internal/commands/release"
 	"github.com/mahmoudk1000/bosla/internal/commands/service"
 	"github.com/mahmoudk1000/bosla/internal/database"
 )
@@ -66,6 +67,7 @@ func main() {
 	bosla.AddCommand(
 		project.NewProjectCommand(queries),
 		service.NewServiceCommand(queries),
+		release.NewReleaseCommand(queries),
 		configure.NewConfigureCommand(queries),
 	)
 
