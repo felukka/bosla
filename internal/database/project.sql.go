@@ -7,11 +7,7 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
 	"time"
-
-	"github.com/sqlc-dev/pqtype"
 )
 
 const checkProjectExistsByName = `-- name: CheckProjectExistsByName :one
@@ -28,17 +24,16 @@ func (q *Queries) CheckProjectExistsByName(ctx context.Context, name string) (bo
 }
 
 const createProject = `-- name: CreateProject :one
-INSERT INTO projects (name, status, link, description, metadata, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, name, status, link, description, metadata, created_at, updated_at
+INSERT INTO projects (name, status, link, description, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, name, status, link, description, created_at, updated_at
 `
 
 type CreateProjectParams struct {
 	Name        string
 	Status      string
-	Link        sql.NullString
-	Description sql.NullString
-	Metadata    pqtype.NullRawMessage
+	Link        string
+	Description string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -49,7 +44,6 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 		arg.Status,
 		arg.Link,
 		arg.Description,
-		arg.Metadata,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -60,7 +54,6 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 		&i.Status,
 		&i.Link,
 		&i.Description,
-		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -78,7 +71,7 @@ func (q *Queries) DeleteProjectByName(ctx context.Context, name string) error {
 }
 
 const getProjectByName = `-- name: GetProjectByName :one
-SELECT id, name, status, link, description, metadata, created_at, updated_at FROM projects
+SELECT id, name, status, link, description, created_at, updated_at FROM projects
 WHERE name = $1
 LIMIT 1
 `
@@ -92,7 +85,6 @@ func (q *Queries) GetProjectByName(ctx context.Context, name string) (Project, e
 		&i.Status,
 		&i.Link,
 		&i.Description,
-		&i.Metadata,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -111,17 +103,6 @@ func (q *Queries) GetProjectIdByName(ctx context.Context, name string) (int32, e
 	return id, err
 }
 
-const getProjectMetadata = `-- name: GetProjectMetadata :one
-SELECT metadata::jsonb AS value FROM projects WHERE name = $1
-`
-
-func (q *Queries) GetProjectMetadata(ctx context.Context, name string) (json.RawMessage, error) {
-	row := q.db.QueryRowContext(ctx, getProjectMetadata, name)
-	var value json.RawMessage
-	err := row.Scan(&value)
-	return value, err
-}
-
 const getProjectStatusById = `-- name: GetProjectStatusById :one
 SELECT status FROM projects
 WHERE id = $1
@@ -134,13 +115,13 @@ func (q *Queries) GetProjectStatusById(ctx context.Context, id int32) (string, e
 	return status, err
 }
 
-const listAllProjects = `-- name: ListAllProjects :many
-SELECT id, name, status, link, description, metadata, created_at, updated_at FROM projects
+const getProjects = `-- name: GetProjects :many
+SELECT id, name, status, link, description, created_at, updated_at FROM projects
 ORDER BY created_at DESC
 `
 
-func (q *Queries) ListAllProjects(ctx context.Context) ([]Project, error) {
-	rows, err := q.db.QueryContext(ctx, listAllProjects)
+func (q *Queries) GetProjects(ctx context.Context) ([]Project, error) {
+	rows, err := q.db.QueryContext(ctx, getProjects)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +135,6 @@ func (q *Queries) ListAllProjects(ctx context.Context) ([]Project, error) {
 			&i.Status,
 			&i.Link,
 			&i.Description,
-			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -171,52 +151,14 @@ func (q *Queries) ListAllProjects(ctx context.Context) ([]Project, error) {
 	return items, nil
 }
 
-const listNProjects = `-- name: ListNProjects :many
-SELECT id, name, status, link, description, metadata, created_at, updated_at FROM projects
-ORDER BY created_at DESC
-LIMIT $1
-`
-
-func (q *Queries) ListNProjects(ctx context.Context, limit int32) ([]Project, error) {
-	rows, err := q.db.QueryContext(ctx, listNProjects, limit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Project
-	for rows.Next() {
-		var i Project
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Status,
-			&i.Link,
-			&i.Description,
-			&i.Metadata,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listProjectsByStatus = `-- name: ListProjectsByStatus :many
-SELECT id, name, status, link, description, metadata, created_at, updated_at FROM projects
+const getProjectsByStatus = `-- name: GetProjectsByStatus :many
+SELECT id, name, status, link, description, created_at, updated_at FROM projects
 WHERE status = $1
 ORDER BY created_at DESC
 `
 
-func (q *Queries) ListProjectsByStatus(ctx context.Context, status string) ([]Project, error) {
-	rows, err := q.db.QueryContext(ctx, listProjectsByStatus, status)
+func (q *Queries) GetProjectsByStatus(ctx context.Context, status string) ([]Project, error) {
+	rows, err := q.db.QueryContext(ctx, getProjectsByStatus, status)
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +172,6 @@ func (q *Queries) ListProjectsByStatus(ctx context.Context, status string) ([]Pr
 			&i.Status,
 			&i.Link,
 			&i.Description,
-			&i.Metadata,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -245,23 +186,6 @@ func (q *Queries) ListProjectsByStatus(ctx context.Context, status string) ([]Pr
 		return nil, err
 	}
 	return items, nil
-}
-
-const updateProjectMetadata = `-- name: UpdateProjectMetadata :exec
-UPDATE projects
-SET metadata = $2, updated_at = $3
-WHERE name = $1
-`
-
-type UpdateProjectMetadataParams struct {
-	Name      string
-	Metadata  pqtype.NullRawMessage
-	UpdatedAt time.Time
-}
-
-func (q *Queries) UpdateProjectMetadata(ctx context.Context, arg UpdateProjectMetadataParams) error {
-	_, err := q.db.ExecContext(ctx, updateProjectMetadata, arg.Name, arg.Metadata, arg.UpdatedAt)
-	return err
 }
 
 const updateProjectStatusByName = `-- name: UpdateProjectStatusByName :exec

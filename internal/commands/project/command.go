@@ -1,17 +1,17 @@
-/*
-Copyright © 2026 mahmoudk1000 <mahmoudk1000@gmail.com>
-*/
 package project
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 const (
-	ErrProjectNotFound = "failed to find project: %w"
+	ErrProjectNotFound = "project %w not found: %w"
+	ErrProjectCreate   = "cloud not create project: %w"
 )
 
-func NewProjectCommand() *cobra.Command {
+func NewProjectCommand(q *database.Queries) *cobra.Command {
 	project := &cobra.Command{
 		Use:     "project create|delete|list|metadata|show|status",
 		Aliases: []string{"proj", "projects"},
@@ -25,12 +25,12 @@ func NewProjectCommand() *cobra.Command {
 	}
 
 	project.AddCommand(
-		NewCreateCommand(),
-		NewDeleteCommand(),
-		NewListCommand(),
-		NewMetadataCommand(),
-		NewShowCommand(),
-		NewStatusCommand(),
+		NewCreateCommand(q),
+		NewDeleteCommand(q),
+		NewDescribeCommand(q),
+		NewGetCommand(q),
+		NewSearchCommand(q),
+		NewUpdateCommand(q),
 	)
 
 	return project

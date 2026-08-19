@@ -1,31 +1,18 @@
 -- name: CreateProject :one
-INSERT INTO projects (name, status, link, description, metadata, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO projects (name, status, link, description, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
-
--- name: UpdateProjectMetadata :exec
-UPDATE projects
-SET metadata = $2, updated_at = $3
-WHERE name = $1;
-
--- name: GetProjectMetadata :one
-SELECT metadata::jsonb AS value FROM projects WHERE name = $1;
 
 -- name: GetProjectByName :one
 SELECT * FROM projects
 WHERE name = $1
 LIMIT 1;
 
--- name: ListAllProjects :many
+-- name: GetProjects :many
 SELECT * FROM projects
 ORDER BY created_at DESC;
 
--- name: ListNProjects :many
-SELECT * FROM projects
-ORDER BY created_at DESC
-LIMIT $1;
-
--- name: ListProjectsByStatus :many
+-- name: GetProjectsByStatus :many
 SELECT * FROM projects
 WHERE status = $1
 ORDER BY created_at DESC;

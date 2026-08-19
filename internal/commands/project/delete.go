@@ -14,9 +14,8 @@ type deleteOptions struct {
 	confirmed bool
 }
 
-func NewDeleteCommand() *cobra.Command {
+func NewDeleteCommand(q *database.Queries) *cobra.Command {
 	opts := &deleteOptions{}
-	var queries *database.Queries
 
 	delete := &cobra.Command{
 		Use:     "delete <project-name>",
@@ -24,7 +23,6 @@ func NewDeleteCommand() *cobra.Command {
 		Short:   "Delete a project",
 		Args:    cobra.ExactArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			queries = database.Get()
 			opts.name = args[0]
 
 			if !opts.confirmed {
@@ -42,7 +40,7 @@ func NewDeleteCommand() *cobra.Command {
 
 	delete.RunE = func(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = true
-		return runDelete(cmd.Context(), opts, queries)
+		return runDelete(cmd.Context(), opts, q)
 	}
 
 	return delete
@@ -50,11 +48,12 @@ func NewDeleteCommand() *cobra.Command {
 
 func runDelete(ctx context.Context, opts *deleteOptions, q *database.Queries) error {
 	exists, err := q.CheckProjectExistsByName(ctx, opts.name)
+
 	if err != nil {
-		return fmt.Errorf(checkProjectExistsErr, err)
+		return fmt.Errorf(ErrProjectNotFound, opts.name, err)
 	}
 	if !exists {
-		return fmt.Errorf(projectNotFoundErr, opts.name)
+		return fmt.Errorf(ErrProjectNotFound, opts.name)
 	}
 
 	return q.DeleteProjectByName(ctx, opts.name)

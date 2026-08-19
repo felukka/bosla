@@ -2,12 +2,10 @@ package project
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/sqlc-dev/pqtype"
 
 	"github.com/mahmoudk1000/bosla/internal/database"
 	"github.com/mahmoudk1000/bosla/internal/utils"
@@ -18,12 +16,10 @@ type createOptions struct {
 	status      string
 	link        string
 	description string
-	metadata    []string
 }
 
-func NewCreateCommand() *cobra.Command {
+func NewCreateCommand(q *database.Queries) *cobra.Command {
 	opts := &createOptions{}
-	var queries *database.Queries
 
 	create := &cobra.Command{
 		Use:     "create <name>",
@@ -31,33 +27,18 @@ func NewCreateCommand() *cobra.Command {
 		Short:   "add a new application to the project",
 		Args:    cobra.ExactArgs(1),
 		PreRun: func(cmd *cobra.Command, args []string) {
-			queries = database.Get()
 			opts.name = args[0]
 		},
+		RunE: utils.Wrap(
+			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
+				return createProject(ctx, opts, q)
+			},
+		),
 	}
 
-	flags := create.Flags()
-	flags.SortFlags = false
-	flags.StringVarP(&opts.status, "status", "s", "active", "Project status")
-	flags.StringVarP(&opts.link, "link", "l", "", "Project link")
-	flags.StringVarP(&opts.description, "description", "d", "", "Project description")
-	flags.StringArrayVarP(&opts.metadata, "metadata", "m", []string{}, "Metadata key=value pairs")
-
-	create.RunE = func(cmd *cobra.Command, args []string) error {
-		cmd.SilenceUsage = true
-
-		metadataMap, err := utils.ParseMetadata(opts.metadata)
-		if err != nil {
-			return fmt.Errorf(invalidFormatErr, err)
-		}
-
-		metadata, err := utils.MetadataToJSON(metadataMap)
-		if err != nil {
-			return err
-		}
-
-		return createProject(cmd.Context(), opts, metadata, queries)
-	}
+	create.Flags().StringVarP(&opts.status, "status", "s", "active", "Project status")
+	create.Flags().StringVarP(&opts.link, "link", "l", "", "Project link")
+	create.Flags().StringVarP(&opts.description, "description", "d", "", "Project description")
 
 	return create
 }
@@ -65,34 +46,26 @@ func NewCreateCommand() *cobra.Command {
 func createProject(
 	ctx context.Context,
 	opts *createOptions,
-	metadata pqtype.NullRawMessage,
 	q *database.Queries,
 ) error {
 	exists, err := q.CheckProjectExistsByName(ctx, opts.name)
 	if err != nil {
-		return fmt.Errorf(checkProjectExistsErr, err)
+		return fmt.Errorf(ErrProjectNotFound, err)
 	}
 	if exists {
-		return fmt.Errorf(projectExistsErr, opts.name)
+		return fmt.Errorf(ErrProjectNotFound, opts.name)
 	}
 
 	now := time.Now().UTC()
 	if _, err = q.CreateProject(ctx, database.CreateProjectParams{
-		Name:   opts.name,
-		Status: opts.status,
-		Link: sql.NullString{
-			String: opts.link,
-			Valid:  opts.link != "",
-		},
-		Description: sql.NullString{
-			String: opts.description,
-			Valid:  opts.description != "",
-		},
-		Metadata:  metadata,
-		CreatedAt: now,
-		UpdatedAt: now,
+		Name:        opts.name,
+		Status:      opts.status,
+		Link:        opts.link,
+		Description: opts.description,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}); err != nil {
-		return fmt.Errorf(failedToCreateProjectErr, err)
+		return fmt.Errorf(ErrProjectCreate, err)
 	}
 
 	return nil

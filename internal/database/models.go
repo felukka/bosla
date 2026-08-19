@@ -5,42 +5,15 @@
 package database
 
 import (
-	"database/sql"
 	"time"
-
-	"github.com/sqlc-dev/pqtype"
 )
-
-type Application struct {
-	ID          int32
-	ProjectID   int32
-	Name        string
-	Status      string
-	Description sql.NullString
-	RepoUrl     sql.NullString
-	Metadata    pqtype.NullRawMessage
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-}
-
-type ApplicationVersion struct {
-	ID            int32
-	ApplicationID int32
-	Version       string
-	Status        sql.NullString
-	GitHash       sql.NullString
-	Description   sql.NullString
-	Metadata      pqtype.NullRawMessage
-	CreatedAt     time.Time
-}
 
 type Project struct {
 	ID          int32
 	Name        string
 	Status      string
-	Link        sql.NullString
-	Description sql.NullString
-	Metadata    pqtype.NullRawMessage
+	Link        string
+	Description string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
@@ -49,12 +22,33 @@ type ProjectVersion struct {
 	ID          int32
 	ProjectID   int32
 	Version     string
-	Description sql.NullString
+	Description string
 	CreatedAt   time.Time
 }
 
-type ProjectVersionApp struct {
-	ProjectVersionID     int32
-	ApplicationID        int32
-	ApplicationVersionID int32
+type ProjectVersionService struct {
+	ProjectVersionID int32
+	ServiceID        int32
+	ServiceVersionID int32
+}
+
+type Service struct {
+	ID          int32
+	ProjectID   int32
+	Name        string
+	Status      string
+	Description string
+	RepoUrl     string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type ServiceVersion struct {
+	ID          int32
+	ServiceID   int32
+	Version     string
+	Status      string
+	GitHash     string
+	Description string
+	CreatedAt   time.Time
 }

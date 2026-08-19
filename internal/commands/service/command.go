@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	ErrServiceNotFound      = "failed to find service: %w"
+	ErrServiceNotFound      = "service: %w not found"
 	ErrServiceCreate        = "failed to create service"
 	ErrServiceList          = "failed to list application for project %q: %w"
 	ErrServiceDelete        = "failed to delete service"

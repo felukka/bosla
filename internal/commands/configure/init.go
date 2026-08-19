@@ -1,4 +1,4 @@
-package config
+package configure
 
 import (
 	"github.com/spf13/cobra"
@@ -6,19 +6,15 @@ import (
 	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
-func NewInitCommand() *cobra.Command {
-	var queries *database.Queries
+func NewInitCommand(q *database.Queries) *cobra.Command {
 
 	init := &cobra.Command{
 		Use:   "init",
 		Short: "Initialize database for the CLI tool",
-		PreRun: func(cmd *cobra.Command, args []string) {
-			queries = database.Get()
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
 
-			if err := queries.InitSchema(ctx); err != nil {
+			if err := q.Migrate(ctx); err != nil {
 				return err
 			}
 

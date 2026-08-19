@@ -16,7 +16,7 @@ type statusOptions struct {
 	status string
 }
 
-func NewStatusCommand() *cobra.Command {
+func NewDescribeCommand(q *database.Queries) *cobra.Command {
 	opts := &statusOptions{}
 	var queries *database.Queries
 
@@ -36,27 +36,14 @@ func NewStatusCommand() *cobra.Command {
 		},
 	}
 
-	flags := status.Flags()
-	flags.Bool("json", false, "Output in JSON format")
-	flags.Bool("yaml", false, "Output in YAML format")
-	flags.BoolP("quiet", "q", false, "quiet mode, no output")
-
 	status.RunE = func(cmd *cobra.Command, args []string) error {
-		cmd.SilenceUsage = true
+		outputFormat, err := cmd.Flags().GetString("output")
 		ctx := cmd.Context()
-
-		jsonFlag, _ := flags.GetBool("json")
-		yamlFlag, _ := flags.GetBool("yaml")
-		quietFlag, _ := flags.GetBool("quiet")
 
 		if len(args) == 1 {
 			s, err := getProjectStatus(ctx, opts, queries)
 			if err != nil {
 				return err
-			}
-
-			if quietFlag {
-				return nil
 			}
 
 			var fmtS string
@@ -89,7 +76,7 @@ func NewStatusCommand() *cobra.Command {
 
 func updateProjectStatus(ctx context.Context, opts *statusOptions, q *database.Queries) error {
 	if _, err := q.CheckProjectExistsByName(ctx, opts.name); err != nil {
-		return fmt.Errorf(projectNotFoundErr, opts.name)
+		return fmt.Errorf(ErrProjectNotFound, opts.name)
 	}
 
 	if err := q.UpdateProjectStatusByName(ctx, database.UpdateProjectStatusByNameParams{
@@ -106,12 +93,12 @@ func updateProjectStatus(ctx context.Context, opts *statusOptions, q *database.Q
 func getProjectStatus(ctx context.Context, opts *statusOptions, q *database.Queries) (any, error) {
 	pId, err := q.GetProjectIdByName(ctx, opts.name)
 	if err != nil {
-		return "", fmt.Errorf(projectNotFoundErr, opts.name)
+		return "", fmt.Errorf(ErrProjectNotFound, opts.name)
 	}
 
 	opts.status, err = q.GetProjectStatusById(ctx, pId)
 	if err != nil {
-		return "", fmt.Errorf(failedToGetProjectErr, err)
+		return "", fmt.Errorf(ErrProjectNotFound, err)
 	}
 
 	return struct {
