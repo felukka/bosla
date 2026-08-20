@@ -31,7 +31,12 @@
             subPackages = [
               "cmd/..."
             ];
-            vendorHash = null;
+            vendorHash = "sha256-OlU2sm5ol7L5BqHo8Qc2v1ayTjUfbh/UM3orew7dnd4=";
+            postInstall = ''
+              mv $out/bin/cmd $out/bin/bosla
+            '';
+
+            meta.mainProgram = "bosla";
           };
         }
       );

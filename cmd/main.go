@@ -43,21 +43,18 @@ func main() {
 
 	dbURL := os.Getenv("BOSLA_DATABASE_URL")
 	if dbURL == "" {
-		fmt.Println("Err: BOSLA_DATABASE_URL env is not set")
-
-		if err := bosla.Help(); err != nil {
-			os.Exit(1)
-		}
+		fmt.Println("err: BOSLA_DATABASE_URL env is not set")
+		os.Exit(1)
 	}
 
 	if err := database.Init(dbURL); err != nil {
-		fmt.Printf("Failed to initialize database: %v\n", err)
+		fmt.Printf("failed to connect to database: %v", err)
 		os.Exit(1)
 	}
 
 	defer func() {
 		if err := database.Close(); err != nil {
-			fmt.Printf("Failed to close database connection: %v\n", err)
+			fmt.Printf("failed to close database connection: %v\n", err)
 			os.Exit(1)
 		}
 	}()
