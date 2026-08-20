@@ -24,16 +24,14 @@ func NewCreateCommand(q *database.Queries) *cobra.Command {
 	create := &cobra.Command{
 		Use:     "create <name>",
 		Aliases: []string{"c", "new"},
-		Short:   "add a new application to the project",
+		Short:   "Create a new project",
 		Args:    cobra.ExactArgs(1),
 		PreRun: func(cmd *cobra.Command, args []string) {
 			opts.name = args[0]
 		},
-		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				return createProject(ctx, opts, q)
-			},
-		),
+		RunE: utils.Wrap(func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
+			return createProject(ctx, opts, q)
+		}),
 	}
 
 	create.Flags().StringVarP(&opts.status, "status", "s", "active", "Project status")
@@ -43,17 +41,13 @@ func NewCreateCommand(q *database.Queries) *cobra.Command {
 	return create
 }
 
-func createProject(
-	ctx context.Context,
-	opts *createOptions,
-	q *database.Queries,
-) error {
+func createProject(ctx context.Context, opts *createOptions, q *database.Queries) error {
 	exists, err := q.CheckProjectExistsByName(ctx, opts.name)
 	if err != nil {
-		return fmt.Errorf(ErrProjectNotFound, err)
+		return err
 	}
 	if exists {
-		return fmt.Errorf(ErrProjectNotFound, opts.name)
+		return fmt.Errorf(ErrProjectExists, opts.name)
 	}
 
 	now := time.Now().UTC()
