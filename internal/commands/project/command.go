@@ -7,14 +7,15 @@ import (
 )
 
 const (
-	ErrProjectNotFound = "project %w not found: %w"
-	ErrProjectCreate   = "cloud not create project: %w"
+	ErrProjectNotFound = "project %q not found"
+	ErrProjectExists   = "project %q already exists"
+	ErrProjectCreate   = "could not create project: %w"
 )
 
 func NewProjectCommand(q *database.Queries) *cobra.Command {
 	project := &cobra.Command{
-		Use:     "project create|delete|list|metadata|show|status",
-		Aliases: []string{"proj", "projects"},
+		Use:     "project",
+		Aliases: []string{"prj"},
 		Short:   "Manage projects",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := cmd.Help(); err != nil {
@@ -28,7 +29,7 @@ func NewProjectCommand(q *database.Queries) *cobra.Command {
 		NewCreateCommand(q),
 		NewDeleteCommand(q),
 		NewDescribeCommand(q),
-		NewGetCommand(q),
+		NewListCommand(q),
 		NewSearchCommand(q),
 		NewUpdateCommand(q),
 	)

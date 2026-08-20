@@ -1,28 +1,32 @@
-package version
+package release
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 const (
-	failedToParseVersionErr = "failed to parse version: %w"
+	ErrReleaseExists   = "release %q already exists for project %q"
+	ErrReleaseNotFound = "release %q not found for project %q"
 )
 
-func NewVersionCommand() *cobra.Command {
-	versions := &cobra.Command{
-		Use:     "version create|delete|list|remove|show",
-		Short:   "Manage versions",
-		Aliases: []string{"ver"},
+func NewReleaseCommand(q *database.Queries) *cobra.Command {
+	releases := &cobra.Command{
+		Use:   "release",
+		Short: "Manage project releases",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := cmd.Help(); err != nil {
 				return err
 			}
-
 			return nil
 		},
 	}
 
-	versions.AddCommand()
+	releases.AddCommand(
+		NewListCommand(q),
+		NewPublishCommand(q),
+	)
 
-	return versions
+	return releases
 }

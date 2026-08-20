@@ -12,7 +12,7 @@ import (
 )
 
 type createOptions struct {
-	name        string
+	pname       string
 	status      string
 	link        string
 	description string
@@ -22,12 +22,12 @@ func NewCreateCommand(q *database.Queries) *cobra.Command {
 	opts := &createOptions{}
 
 	create := &cobra.Command{
-		Use:     "create <name>",
-		Aliases: []string{"c", "new"},
-		Short:   "add a new application to the project",
+		Use:     "create",
+		Short:   "Create a new project",
 		Args:    cobra.ExactArgs(1),
+		Example: "create <project_name>",
 		PreRun: func(cmd *cobra.Command, args []string) {
-			opts.name = args[0]
+			opts.pname = args[0]
 		},
 		RunE: utils.Wrap(
 			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
@@ -38,27 +38,23 @@ func NewCreateCommand(q *database.Queries) *cobra.Command {
 
 	create.Flags().StringVarP(&opts.status, "status", "s", "active", "Project status")
 	create.Flags().StringVarP(&opts.link, "link", "l", "", "Project link")
-	create.Flags().StringVarP(&opts.description, "description", "d", "", "Project description")
+	create.Flags().StringVarP(&opts.description, "desc", "d", "", "Project description")
 
 	return create
 }
 
-func createProject(
-	ctx context.Context,
-	opts *createOptions,
-	q *database.Queries,
-) error {
-	exists, err := q.CheckProjectExistsByName(ctx, opts.name)
+func createProject(ctx context.Context, opts *createOptions, q *database.Queries) error {
+	exists, err := q.CheckProjectExistsByName(ctx, opts.pname)
 	if err != nil {
-		return fmt.Errorf(ErrProjectNotFound, err)
+		return err
 	}
 	if exists {
-		return fmt.Errorf(ErrProjectNotFound, opts.name)
+		return fmt.Errorf(ErrProjectExists, opts.pname)
 	}
 
 	now := time.Now().UTC()
 	if _, err = q.CreateProject(ctx, database.CreateProjectParams{
-		Name:        opts.name,
+		Name:        opts.pname,
 		Status:      opts.status,
 		Link:        opts.link,
 		Description: opts.description,

@@ -11,8 +11,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/mahmoudk1000/bosla/internal/commands/config"
+	"github.com/mahmoudk1000/bosla/internal/commands/configure"
 	"github.com/mahmoudk1000/bosla/internal/commands/project"
+	"github.com/mahmoudk1000/bosla/internal/commands/release"
 	"github.com/mahmoudk1000/bosla/internal/commands/service"
 	"github.com/mahmoudk1000/bosla/internal/database"
 )
@@ -64,9 +65,10 @@ func main() {
 	queries := database.Get()
 
 	bosla.AddCommand(
+		configure.NewConfigureCommand(queries),
 		project.NewProjectCommand(queries),
+		release.NewReleaseCommand(queries),
 		service.NewServiceCommand(queries),
-		config.NewConfigCommand(),
 	)
 
 	if err := bosla.ExecuteContext(ctx); err != nil {

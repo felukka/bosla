@@ -11,39 +11,37 @@ import (
 	"github.com/mahmoudk1000/bosla/internal/utils"
 )
 
-func NewGetCommand(q *database.Queries) *cobra.Command {
+func NewListCommand(q *database.Queries) *cobra.Command {
 	return &cobra.Command{
-		Use:     "get",
+		Use:     "list",
 		Aliases: []string{"ls"},
-		Short:   "Get projects",
+		Short:   "List projects",
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-
-				project, err := getProjects(ctx, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, format string) error {
+				projects, err := listProjects(ctx, q)
 				if err != nil {
 					return err
 				}
 
-				format, err := utils.Format(project, outputFormat)
+				formatted, err := utils.Format(projects, format)
 				if err != nil {
 					return err
 				}
 
-				fmt.Fprintln(cmd.OutOrStdout(), format)
+				if _, err := fmt.Fprintln(cmd.OutOrStdout(), formatted); err != nil {
+					return err
+				}
+
 				return nil
 			},
 		),
 	}
 }
 
-func getProjects(
-	ctx context.Context,
-	q *database.Queries,
-) ([]models.Project, error) {
-
+func listProjects(ctx context.Context, q *database.Queries) ([]models.Project, error) {
 	p, err := q.GetProjects(ctx)
 	if err != nil {
-		return nil, fmt.Errorf(ErrProjectNotFound, err)
+		return nil, err
 	}
 
 	return models.ToProjects(p), nil

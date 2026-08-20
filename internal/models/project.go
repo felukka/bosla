@@ -11,19 +11,19 @@ type Project struct {
 	Status      string    `json:"status,omitempty"`
 	Link        string    `json:"link,omitempty"`
 	Description string    `json:"description,omitempty"`
-	Created_At  string    `json:"created_at"`
-	Updated_At  string    `json:"updated_at,omitempty"`
-	Service     []Service `json:"services"`
+	CreatedAt   string    `json:"created_at"`
+	UpdatedAt   string    `json:"updated_at,omitempty"`
+	Services    []Service `json:"services,omitempty"`
 }
 
 func ToProject(p database.Project) Project {
 	return Project{
 		Name:        p.Name,
 		Status:      p.Status,
-		Link:        p.Link.String,
-		Description: p.Description.String,
-		Created_At:  p.CreatedAt.Format(time.RFC1123),
-		Updated_At:  p.UpdatedAt.Format(time.RFC1123),
+		Link:        p.Link,
+		Description: p.Description,
+		CreatedAt:   p.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   p.UpdatedAt.Format(time.RFC3339),
 	}
 }
 

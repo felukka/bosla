@@ -2,14 +2,15 @@
 services:
   postgres:
     image: docker.io/postgres:16
-    container_name: bosla_db
+    container_name: bosla
     restart: always
     shm_size: 128mb
     environment:
       POSTGRES_USER: postgre
       POSTGRES_PASSWORD: MyVeryStrongPassword
       POSTGRES_DB: bosla
-    ports: [2345:5432]
+    ports:
+      - 5432:5432
     volumes:
       - postgres:/var/lib/postgresql
 volumes:

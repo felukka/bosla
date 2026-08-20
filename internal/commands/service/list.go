@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"regexp"
 
 	"github.com/spf13/cobra"
 
@@ -12,26 +11,25 @@ import (
 	"github.com/mahmoudk1000/bosla/internal/utils"
 )
 
-type searchOptions struct {
-	pname   string
-	pattern string
+type listOptions struct {
+	pname string
 }
 
-func NewSearchCommand(q *database.Queries) *cobra.Command {
-	opts := &searchOptions{}
+func NewListCommand(q *database.Queries) *cobra.Command {
+	opts := &listOptions{}
 
-	search := &cobra.Command{
-		Use:     "search",
-		Short:   "Search services in a project with a pattern",
-		Args:    cobra.ExactArgs(2),
-		Example: "search <project_name> <pattern>",
+	return &cobra.Command{
+		Use:     "list",
+		Aliases: []string{"ls"},
+		Short:   "List services for a project",
+		Args:    cobra.ExactArgs(1),
+		Example: "list <project_name>",
 		PreRun: func(cmd *cobra.Command, args []string) {
 			opts.pname = args[0]
-			opts.pattern = args[1]
 		},
 		RunE: utils.Wrap(
 			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				services, err := searchServices(ctx, opts, q)
+				services, err := getServices(ctx, opts, q)
 				if err != nil {
 					return err
 				}
@@ -49,41 +47,22 @@ func NewSearchCommand(q *database.Queries) *cobra.Command {
 			},
 		),
 	}
-
-	return search
 }
 
-func searchServices(
+func getServices(
 	ctx context.Context,
-	opts *searchOptions,
+	opts *listOptions,
 	q *database.Queries,
 ) ([]models.Service, error) {
-	re, err := regexp.Compile(opts.pattern)
-	if err != nil {
-		return nil, fmt.Errorf("invalid regex pattern %q: %w", opts.pattern, err)
-	}
-
 	projectID, err := q.GetProjectIdByName(ctx, opts.pname)
 	if err != nil {
 		return nil, fmt.Errorf("project %q not found", opts.pname)
 	}
 
-	allServices, err := q.GetServiceByProjectName(ctx, projectID)
+	services, err := q.GetServiceByProjectName(ctx, projectID)
 	if err != nil {
 		return nil, fmt.Errorf(ErrServiceList, opts.pname, err)
 	}
 
-	services := models.ToServices(allServices)
-	results := make([]models.Service, 0)
-
-	for _, s := range services {
-		if re.MatchString(s.Name) ||
-			re.MatchString(s.Status) ||
-			re.MatchString(s.RepoURL) ||
-			re.MatchString(s.Description) {
-			results = append(results, s)
-		}
-	}
-
-	return results, nil
+	return models.ToServices(services), nil
 }
