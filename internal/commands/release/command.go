@@ -2,8 +2,6 @@ package release
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 const (
@@ -11,7 +9,7 @@ const (
 	ErrReleaseNotFound = "release %q not found for project %q"
 )
 
-func NewReleaseCommand(q *database.Queries) *cobra.Command {
+func NewReleaseCommand() *cobra.Command {
 	releases := &cobra.Command{
 		Use:   "release",
 		Short: "Manage project releases",
@@ -24,8 +22,8 @@ func NewReleaseCommand(q *database.Queries) *cobra.Command {
 	}
 
 	releases.AddCommand(
-		NewListCommand(q),
-		NewPublishCommand(q),
+		NewListCommand(),
+		NewPublishCommand(),
 	)
 
 	return releases

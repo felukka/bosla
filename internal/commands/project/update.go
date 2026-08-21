@@ -18,7 +18,7 @@ type updateOptions struct {
 	description string
 }
 
-func NewUpdateCommand(q *database.Queries) *cobra.Command {
+func NewUpdateCommand() *cobra.Command {
 	opts := &updateOptions{}
 
 	update := &cobra.Command{
@@ -30,8 +30,8 @@ func NewUpdateCommand(q *database.Queries) *cobra.Command {
 			opts.pname = args[0]
 		},
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				return updateProject(ctx, opts, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				return update(ctx, opts, queries)
 			},
 		),
 	}
@@ -43,7 +43,7 @@ func NewUpdateCommand(q *database.Queries) *cobra.Command {
 	return update
 }
 
-func updateProject(ctx context.Context, opts *updateOptions, q *database.Queries) error {
+func update(ctx context.Context, opts *updateOptions, q *database.Queries) error {
 	exists, err := q.CheckProjectExistsByName(ctx, opts.pname)
 	if err != nil {
 		return err

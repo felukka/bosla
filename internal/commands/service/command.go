@@ -1,12 +1,10 @@
 /*
-Copyright © 2026 (mahmoudk1000) <mahmoudk1000@gmail.com>
+Copyright © 2026 felukka.org
 */
 package service
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 const (
@@ -17,7 +15,7 @@ const (
 	ErrServiceDelete   = "failed to delete service: %w"
 )
 
-func NewServiceCommand(q *database.Queries) *cobra.Command {
+func NewServiceCommand() *cobra.Command {
 	service := &cobra.Command{
 		Use:     "service",
 		Aliases: []string{"svc"},
@@ -31,10 +29,10 @@ func NewServiceCommand(q *database.Queries) *cobra.Command {
 	}
 
 	service.AddCommand(
-		NewDeleteCommand(q),
-		NewListCommand(q),
-		NewRegisterCommand(q),
-		NewSearchCommand(q),
+		NewDeleteCommand(),
+		NewListCommand(),
+		NewRegisterCommand(),
+		NewSearchCommand(),
 	)
 
 	return service

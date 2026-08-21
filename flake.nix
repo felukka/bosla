@@ -1,5 +1,5 @@
 {
-  description = "Release engineering versioning CLI tool";
+  description = "A serious, well-scoped versioning tool.";
 
   inputs.nixpkgs.url = "nixpkgs/nixos-25.11";
 
@@ -29,14 +29,15 @@
             pname = "bosla";
             src = ./.;
             subPackages = [
-              "cmd/..."
+              "cmd/bosla"
             ];
             vendorHash = "sha256-OlU2sm5ol7L5BqHo8Qc2v1ayTjUfbh/UM3orew7dnd4=";
-            postInstall = ''
-              mv $out/bin/cmd $out/bin/bosla
-            '';
 
-            meta.mainProgram = "bosla";
+            meta = {
+              mainProgram = "bosla";
+              homepage = "https://bosla.felukka.org";
+              description = "A serious, well-scoped versioning tool.";
+            };
           };
         }
       );

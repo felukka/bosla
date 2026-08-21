@@ -1,26 +1,43 @@
 package configure
 
 import (
-	"github.com/spf13/cobra"
+	"errors"
+	"os"
+	"path/filepath"
 
-	"github.com/mahmoudk1000/bosla/internal/database"
+	"github.com/spf13/cobra"
 )
 
-func NewConfigureCommand(q *database.Queries) *cobra.Command {
+var (
+	ConfigFile = func() string {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return ".bosla.json"
+		}
+
+		return filepath.Join(home, ".bosla.json")
+	}()
+	ErrConfigInValid = errors.New("bosla.json is invalid")
+)
+
+func NewConfigureCommand() *cobra.Command {
 	configure := &cobra.Command{
 		Use:     "configure",
 		Aliases: []string{"config"},
 		Short:   "manage configuration for bosla",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := cmd.Help(); err != nil {
-				return err
+				return nil
 			}
 
 			return nil
 		},
 	}
 
-	configure.AddCommand(NewInitCommand(q))
+	configure.AddCommand(
+		NewInitCommand(),
+		NewSetCommand(),
+	)
 
 	return configure
 }

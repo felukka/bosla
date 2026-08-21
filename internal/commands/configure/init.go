@@ -6,13 +6,13 @@ import (
 	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
-func NewInitCommand(q *database.Queries) *cobra.Command {
-
-	init := &cobra.Command{
+func NewInitCommand() *cobra.Command {
+	return &cobra.Command{
 		Use:   "init",
 		Short: "Initialize database for the CLI tool",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := cmd.Context()
+			q := database.Get()
 
 			if err := q.Migrate(ctx); err != nil {
 				return err
@@ -21,6 +21,4 @@ func NewInitCommand(q *database.Queries) *cobra.Command {
 			return nil
 		},
 	}
-
-	return init
 }

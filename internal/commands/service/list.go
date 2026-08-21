@@ -15,7 +15,7 @@ type listOptions struct {
 	pname string
 }
 
-func NewListCommand(q *database.Queries) *cobra.Command {
+func NewListCommand() *cobra.Command {
 	opts := &listOptions{}
 
 	return &cobra.Command{
@@ -28,18 +28,18 @@ func NewListCommand(q *database.Queries) *cobra.Command {
 			opts.pname = args[0]
 		},
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				services, err := getServices(ctx, opts, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				services, err := list(ctx, opts, queries)
 				if err != nil {
 					return err
 				}
 
-				formatted, err := utils.Format(services, outputFormat)
+				output, err = utils.Format(services, output)
 				if err != nil {
 					return err
 				}
 
-				if _, err := fmt.Fprintln(cmd.OutOrStdout(), formatted); err != nil {
+				if _, err := fmt.Fprintln(cmd.OutOrStdout(), output); err != nil {
 					return err
 				}
 
@@ -49,7 +49,7 @@ func NewListCommand(q *database.Queries) *cobra.Command {
 	}
 }
 
-func getServices(
+func list(
 	ctx context.Context,
 	opts *listOptions,
 	q *database.Queries,

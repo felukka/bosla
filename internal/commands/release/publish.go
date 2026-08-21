@@ -21,7 +21,7 @@ type publishOptions struct {
 	services    []string
 }
 
-func NewPublishCommand(q *database.Queries) *cobra.Command {
+func NewPublishCommand() *cobra.Command {
 	opts := &publishOptions{}
 
 	publish := &cobra.Command{
@@ -34,8 +34,8 @@ func NewPublishCommand(q *database.Queries) *cobra.Command {
 			opts.version = args[1]
 		},
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				return createRelease(ctx, opts, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				return publish(ctx, opts, queries)
 			},
 		),
 	}
@@ -49,7 +49,7 @@ func NewPublishCommand(q *database.Queries) *cobra.Command {
 	return publish
 }
 
-func createRelease(ctx context.Context, opts *publishOptions, q *database.Queries) error {
+func publish(ctx context.Context, opts *publishOptions, q *database.Queries) error {
 	projectID, err := q.GetProjectIdByName(ctx, opts.pname)
 	if err != nil {
 		return fmt.Errorf("project %q not found", opts.pname)

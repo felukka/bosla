@@ -16,7 +16,7 @@ type searchOptions struct {
 	pattern string
 }
 
-func NewSearchCommand(q *database.Queries) *cobra.Command {
+func NewSearchCommand() *cobra.Command {
 	opts := &searchOptions{}
 
 	search := &cobra.Command{
@@ -28,18 +28,18 @@ func NewSearchCommand(q *database.Queries) *cobra.Command {
 			opts.pattern = args[0]
 		},
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				projects, err := searchProjects(ctx, opts.pattern, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				projects, err := search(ctx, opts.pattern, queries)
 				if err != nil {
 					return err
 				}
 
-				formatted, err := utils.Format(projects, outputFormat)
+				output, err = utils.Format(projects, output)
 				if err != nil {
 					return err
 				}
 
-				if _, err := fmt.Fprintln(cmd.OutOrStdout(), formatted); err != nil {
+				if _, err := fmt.Fprintln(cmd.OutOrStdout(), output); err != nil {
 					return err
 				}
 				return nil
@@ -50,7 +50,7 @@ func NewSearchCommand(q *database.Queries) *cobra.Command {
 	return search
 }
 
-func searchProjects(
+func search(
 	ctx context.Context,
 	pattern string,
 	q *database.Queries,

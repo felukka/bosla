@@ -2,8 +2,6 @@ package project
 
 import (
 	"github.com/spf13/cobra"
-
-	"github.com/mahmoudk1000/bosla/internal/database"
 )
 
 const (
@@ -12,7 +10,7 @@ const (
 	ErrProjectCreate   = "could not create project: %w"
 )
 
-func NewProjectCommand(q *database.Queries) *cobra.Command {
+func NewProjectCommand() *cobra.Command {
 	project := &cobra.Command{
 		Use:     "project",
 		Aliases: []string{"prj"},
@@ -26,12 +24,12 @@ func NewProjectCommand(q *database.Queries) *cobra.Command {
 	}
 
 	project.AddCommand(
-		NewCreateCommand(q),
-		NewDeleteCommand(q),
-		NewDescribeCommand(q),
-		NewListCommand(q),
-		NewSearchCommand(q),
-		NewUpdateCommand(q),
+		NewCreateCommand(),
+		NewDeleteCommand(),
+		NewDescribeCommand(),
+		NewListCommand(),
+		NewSearchCommand(),
+		NewUpdateCommand(),
 	)
 
 	return project

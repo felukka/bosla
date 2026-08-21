@@ -19,7 +19,7 @@ type registerOptions struct {
 	description string
 }
 
-func NewRegisterCommand(q *database.Queries) *cobra.Command {
+func NewRegisterCommand() *cobra.Command {
 	opts := &registerOptions{}
 
 	register := &cobra.Command{
@@ -28,8 +28,8 @@ func NewRegisterCommand(q *database.Queries) *cobra.Command {
 		Args:    cobra.ExactArgs(2),
 		Example: "register <project_name> <service_name>",
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				return registerService(ctx, opts, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				return register(ctx, opts, queries)
 			},
 		),
 	}
@@ -41,7 +41,7 @@ func NewRegisterCommand(q *database.Queries) *cobra.Command {
 	return register
 }
 
-func registerService(ctx context.Context, opts *registerOptions, q *database.Queries) error {
+func register(ctx context.Context, opts *registerOptions, q *database.Queries) error {
 	projectID, err := q.GetProjectIdByName(ctx, opts.pname)
 	if err != nil {
 		return fmt.Errorf("project %q not found", opts.pname)

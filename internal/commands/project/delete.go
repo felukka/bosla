@@ -15,7 +15,7 @@ type deleteOptions struct {
 	confirm bool
 }
 
-func NewDeleteCommand(q *database.Queries) *cobra.Command {
+func NewDeleteCommand() *cobra.Command {
 	opts := &deleteOptions{}
 
 	delete := &cobra.Command{
@@ -35,8 +35,8 @@ func NewDeleteCommand(q *database.Queries) *cobra.Command {
 			return nil
 		},
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				return deleteProject(ctx, opts, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				return delete(ctx, opts, queries)
 			},
 		),
 	}
@@ -46,7 +46,7 @@ func NewDeleteCommand(q *database.Queries) *cobra.Command {
 	return delete
 }
 
-func deleteProject(ctx context.Context, opts *deleteOptions, q *database.Queries) error {
+func delete(ctx context.Context, opts *deleteOptions, q *database.Queries) error {
 	exists, err := q.CheckProjectExistsByName(ctx, opts.pname)
 	if err != nil {
 		return err

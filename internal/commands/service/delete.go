@@ -15,7 +15,7 @@ type deleteOptions struct {
 	sname string
 }
 
-func NewDeleteCommand(q *database.Queries) *cobra.Command {
+func NewDeleteCommand() *cobra.Command {
 	opts := &deleteOptions{}
 
 	delete := &cobra.Command{
@@ -29,8 +29,8 @@ func NewDeleteCommand(q *database.Queries) *cobra.Command {
 			opts.sname = args[1]
 		},
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				return deleteService(ctx, opts, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				return delete(ctx, opts, queries)
 			},
 		),
 	}
@@ -38,7 +38,7 @@ func NewDeleteCommand(q *database.Queries) *cobra.Command {
 	return delete
 }
 
-func deleteService(
+func delete(
 	ctx context.Context,
 	opts *deleteOptions,
 	q *database.Queries,

@@ -15,7 +15,7 @@ type describeOptions struct {
 	pname string
 }
 
-func NewDescribeCommand(q *database.Queries) *cobra.Command {
+func NewDescribeCommand() *cobra.Command {
 	opts := &describeOptions{}
 
 	describe := &cobra.Command{
@@ -27,18 +27,18 @@ func NewDescribeCommand(q *database.Queries) *cobra.Command {
 			opts.pname = args[0]
 		},
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				project, err := describeProject(ctx, opts, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				project, err := describe(ctx, opts, queries)
 				if err != nil {
 					return err
 				}
 
-				formatted, err := utils.Format(project, outputFormat)
+				output, err = utils.Format(project, output)
 				if err != nil {
 					return err
 				}
 
-				if _, err := fmt.Fprintln(cmd.OutOrStdout(), formatted); err != nil {
+				if _, err := fmt.Fprintln(cmd.OutOrStdout(), output); err != nil {
 					return err
 				}
 
@@ -50,7 +50,7 @@ func NewDescribeCommand(q *database.Queries) *cobra.Command {
 	return describe
 }
 
-func describeProject(
+func describe(
 	ctx context.Context,
 	opts *describeOptions,
 	q *database.Queries,

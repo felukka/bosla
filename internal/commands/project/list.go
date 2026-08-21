@@ -11,14 +11,14 @@ import (
 	"github.com/mahmoudk1000/bosla/internal/utils"
 )
 
-func NewListCommand(q *database.Queries) *cobra.Command {
+func NewListCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "List projects",
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, format string) error {
-				projects, err := listProjects(ctx, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, format string) error {
+				projects, err := list(ctx, queries)
 				if err != nil {
 					return err
 				}
@@ -38,7 +38,7 @@ func NewListCommand(q *database.Queries) *cobra.Command {
 	}
 }
 
-func listProjects(ctx context.Context, q *database.Queries) ([]models.Project, error) {
+func list(ctx context.Context, q *database.Queries) ([]models.Project, error) {
 	p, err := q.GetProjects(ctx)
 	if err != nil {
 		return nil, err

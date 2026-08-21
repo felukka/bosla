@@ -18,7 +18,7 @@ type createOptions struct {
 	description string
 }
 
-func NewCreateCommand(q *database.Queries) *cobra.Command {
+func NewCreateCommand() *cobra.Command {
 	opts := &createOptions{}
 
 	create := &cobra.Command{
@@ -30,8 +30,8 @@ func NewCreateCommand(q *database.Queries) *cobra.Command {
 			opts.pname = args[0]
 		},
 		RunE: utils.Wrap(
-			func(ctx context.Context, cmd *cobra.Command, args []string, outputFormat string) error {
-				return createProject(ctx, opts, q)
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				return create(ctx, opts, queries)
 			},
 		),
 	}
@@ -43,7 +43,7 @@ func NewCreateCommand(q *database.Queries) *cobra.Command {
 	return create
 }
 
-func createProject(ctx context.Context, opts *createOptions, q *database.Queries) error {
+func create(ctx context.Context, opts *createOptions, q *database.Queries) error {
 	exists, err := q.CheckProjectExistsByName(ctx, opts.pname)
 	if err != nil {
 		return err
