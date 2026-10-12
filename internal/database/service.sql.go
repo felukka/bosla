@@ -243,3 +243,22 @@ func (q *Queries) UpdateServiceStatus(ctx context.Context, arg UpdateServiceStat
 	_, err := q.db.ExecContext(ctx, updateServiceStatus, arg.ID, arg.Status, arg.UpdatedAt)
 	return err
 }
+
+const updateServiceByName = `-- name: UpdateServiceByName :exec
+UPDATE services
+SET status = $2, repo_url = $3, description = $4, updated_at = $5
+WHERE id = $1
+`
+
+type UpdateServiceByNameParams struct {
+	ID          int32
+	Status      string
+	RepoUrl     string
+	Description string
+	UpdatedAt   time.Time
+}
+
+func (q *Queries) UpdateServiceByName(ctx context.Context, arg UpdateServiceByNameParams) error {
+	_, err := q.db.ExecContext(ctx, updateServiceByName, arg.ID, arg.Status, arg.RepoUrl, arg.Description, arg.UpdatedAt)
+	return err
+}

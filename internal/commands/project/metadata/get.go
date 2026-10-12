@@ -1,0 +1,67 @@
+package metadata
+
+import (
+	"context"
+	"fmt"
+	"io"
+
+	"github.com/spf13/cobra"
+
+	"github.com/mahmoudk1000/bosla/internal/database"
+	"github.com/mahmoudk1000/bosla/internal/utils"
+)
+
+type getOptions struct {
+	pname string
+	key   string
+}
+
+func NewGetCommand() *cobra.Command {
+	opts := &getOptions{}
+
+	get := &cobra.Command{
+		Use:     "get",
+		Short:   "Get a project metadata value by key",
+		Args:    cobra.ExactArgs(2),
+		Example: "get <project_name> <key>",
+		PreRun: func(cmd *cobra.Command, args []string) {
+			opts.pname = args[0]
+			opts.key = args[1]
+		},
+		RunE: utils.Wrap(
+			func(ctx context.Context, cmd *cobra.Command, args []string, queries *database.Queries, output string) error {
+				return get(ctx, opts, queries, output, cmd.OutOrStdout())
+			},
+		),
+	}
+
+	return get
+}
+
+func get(ctx context.Context, opts *getOptions, q *database.Queries, output string, out io.Writer) error {
+	projectID, err := q.GetProjectIdByName(ctx, opts.pname)
+	if err != nil {
+		return fmt.Errorf("project %q not found", opts.pname)
+	}
+
+	m, err := q.GetMetadataByKey(ctx, database.GetMetadataByKeyParams{
+		ProjectID: projectID,
+		Key:       opts.key,
+	})
+	if err != nil {
+		return fmt.Errorf("metadata key %q not found", opts.key)
+	}
+
+	entry := metadataEntry{
+		Key:   m.Key,
+		Value: m.Value,
+	}
+
+	formatted, err := utils.Format(entry, output)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintln(out, formatted)
+	return nil
+}

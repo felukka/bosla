@@ -22,6 +22,7 @@ func NewReleaseCommand() *cobra.Command {
 	}
 
 	releases.AddCommand(
+		NewDescribeCommand(),
 		NewListCommand(),
 		NewPublishCommand(),
 	)

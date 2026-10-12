@@ -53,6 +53,26 @@ CREATE TABLE IF NOT EXISTS project_version_services (
     PRIMARY KEY (project_version_id, service_id)
 );
 
+CREATE TABLE IF NOT EXISTS project_metadata (
+    project_id    INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    key           TEXT NOT NULL,
+    value         TEXT NOT NULL DEFAULT '',
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (project_id, key)
+);
+
+CREATE TABLE IF NOT EXISTS service_metadata (
+    service_id  INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    key         TEXT NOT NULL,
+    value       TEXT NOT NULL DEFAULT '',
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (service_id, key)
+);
+
 CREATE INDEX IF NOT EXISTS idx_projects_name ON projects(name);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
 
@@ -62,5 +82,8 @@ CREATE INDEX IF NOT EXISTS idx_services_status ON services(status);
 CREATE INDEX IF NOT EXISTS idx_project_versions_version ON project_versions(version);
 CREATE INDEX IF NOT EXISTS idx_service_versions_version ON service_versions(version);
 CREATE INDEX IF NOT EXISTS idx_service_versions_status ON service_versions(status);
+
+CREATE INDEX IF NOT EXISTS idx_project_metadata_project_id ON project_metadata(project_id);
+CREATE INDEX IF NOT EXISTS idx_service_metadata_service_id ON service_metadata(service_id);
 
 COMMIT;

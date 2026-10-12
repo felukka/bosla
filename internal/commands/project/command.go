@@ -2,6 +2,8 @@ package project
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/mahmoudk1000/bosla/internal/commands/project/metadata"
 )
 
 const (
@@ -30,6 +32,7 @@ func NewProjectCommand() *cobra.Command {
 		NewListCommand(),
 		NewSearchCommand(),
 		NewUpdateCommand(),
+		metadata.NewMetadataCommand(),
 	)
 
 	return project

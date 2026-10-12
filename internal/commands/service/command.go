@@ -30,9 +30,11 @@ func NewServiceCommand() *cobra.Command {
 
 	service.AddCommand(
 		NewDeleteCommand(),
+		NewDescribeCommand(),
 		NewListCommand(),
 		NewRegisterCommand(),
 		NewSearchCommand(),
+		NewUpdateCommand(),
 	)
 
 	return service

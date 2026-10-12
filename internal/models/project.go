@@ -16,6 +16,17 @@ type Project struct {
 	Services    []Service `json:"services,omitempty"`
 }
 
+type ProjectOutput struct {
+	Name        string            `json:"name"`
+	Status      string            `json:"status,omitempty"`
+	Link        string            `json:"link,omitempty"`
+	Description string            `json:"description,omitempty"`
+	CreatedAt   string            `json:"created_at"`
+	UpdatedAt   string            `json:"updated_at,omitempty"`
+	Services    []Service         `json:"services,omitempty"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
+}
+
 func ToProject(p database.Project) Project {
 	return Project{
 		Name:        p.Name,
@@ -34,4 +45,21 @@ func ToProjects(ps []database.Project) []Project {
 	}
 
 	return result
+}
+
+func ToProjectOutput(p database.Project, metadata []database.ProjectMetadata) ProjectOutput {
+	meta := make(map[string]string, len(metadata))
+	for _, m := range metadata {
+		meta[m.Key] = m.Value
+	}
+
+	return ProjectOutput{
+		Name:        p.Name,
+		Status:      p.Status,
+		Link:        p.Link,
+		Description: p.Description,
+		CreatedAt:   p.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   p.UpdatedAt.Format(time.RFC3339),
+		Metadata:    meta,
+	}
 }
