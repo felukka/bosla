@@ -6,64 +6,49 @@
   outputs =
     { self, nixpkgs }:
     let
-      lastModifiedDate = self.lastModifiedDate or self.lastModified or "19700101";
-      version = builtins.substring 0 8 lastModifiedDate;
-      supportedSystems = [
+      inherit (nixpkgs) lib;
+
+      systems = [
         "x86_64-linux"
-        "x86_64-darwin"
         "aarch64-linux"
-        "aarch64-darwin"
       ];
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
+
+      overlay = final: _: {
+        bosla = final.callPackage ./package.nix { };
+      };
+
+      pkgsFor = lib.genAttrs systems (
+        system:
+        import nixpkgs {
+          inherit system;
+          overlays = [ overlay ];
+        }
+      );
+
+      forAllSystems = f: lib.genAttrs systems (system: f pkgsFor.${system});
     in
     {
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
-        {
-          default = pkgs.buildGoModule {
-            inherit version;
-            pname = "bosla";
-            src = ./.;
-            subPackages = [
-              "cmd/bosla"
-            ];
-            vendorHash = "sha256-OlU2sm5ol7L5BqHo8Qc2v1ayTjUfbh/UM3orew7dnd4=";
+      overlays.default = overlay;
 
-            meta = {
-              mainProgram = "bosla";
-              homepage = "https://bosla.felukka.org";
-              description = "A serious, well-scoped versioning tool.";
-            };
-          };
-        }
-      );
+      packages = forAllSystems (pkgs: {
+        default = pkgs.bosla;
+      });
 
-      devShells = forAllSystems (
-        system:
-        let
-          pkgs = nixpkgsFor.${system};
-        in
-        {
-          default = pkgs.mkShell {
-            packages = with pkgs; [
-              cobra-cli
-              goimports-reviser
-              golangci-lint
-              golines
-              sqlc
-            ];
-            buildInputs = with pkgs; [
-              go
-              gopls
-              gotools
-              go-tools
-            ];
-          };
-        }
-      );
+      devShells = forAllSystems (pkgs: {
+        default = pkgs.mkShellNoCC {
+          packages = with pkgs; [
+            cobra-cli
+            goimports-reviser
+            golangci-lint
+            golines
+            sqlc
+            (python3.withPackages (
+              p: with p; [
+                mkdocs-material
+              ]
+            ))
+          ];
+        };
+      });
     };
 }

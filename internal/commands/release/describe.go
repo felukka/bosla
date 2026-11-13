@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mahmoudk1000/bosla/internal/commands/project"
 	"github.com/mahmoudk1000/bosla/internal/database"
 	"github.com/mahmoudk1000/bosla/internal/utils"
 )
