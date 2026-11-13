@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Bosla">
+  <!-- Placeholder logo: a boat (bosla = boat in Arabic). Replace with the real logo. -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#0e1419"/>
+  <g fill="#eac07d">
+    <!-- sail -->
+    <path d="M32 10 L50 36 L32 36 Z"/>
+    <!-- jib -->
+    <path d="M29 14 L29 36 L17 36 Z"/>
+    <!-- mast -->
+    <rect x="30" y="9" width="2.4" height="28" rx="1.2"/>
+    <!-- hull -->
+    <path d="M12 40 H52 L45.5 50 H18.5 Z"/>
+  </g>
+  <!-- water line -->
+  <path d="M14 54 q4 -3 8 0 t8 0 t8 0 t8 0 t8 0" fill="none" stroke="#eac07d" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/>
+</svg>
